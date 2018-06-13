@@ -33,7 +33,7 @@ import os
 from Supporting import *
 from subprocess import Popen, PIPE, STDOUT
 
-PIDFILE = 'growatt-ardexa.pid'
+PIDFILE = 'growatt-ardexa-'
 START_REG = "1"
 REGS_TO_READ = "42"
 BAUD_RATE = "9600"
@@ -47,67 +47,72 @@ fault_dict = {		"24" : "Auto Test Failed", "25": "No AC Connection", "26" : "PV 
 #~~~~~~~~~~~~~~~~~~~   START Functions ~~~~~~~~~~~~~~~~~~~~~~~
 
 def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
-	# initialise stdout and stderr to NULL
-	stdout = ""
-	stderr = ""
-	errors = False
-	register_dict = {}
+    # initialise stdout and stderr to NULL
+    stdout = ""
+    stderr = ""
+    errors = False
+    register_dict = {}
+    header = ""
+    output_str = ""
 
 
-	# NOTE: For the modpoll command, do not use the '-0' option. It will rmeove the 0 reading, which we need
+    # NOTE: For the modpoll command, do not use the '-0' option. It will rmeove the 0 reading, which we need
 
-	if (enc_tcp):
-		# This command is to get the parameter data from the inverters using RTU encapsulated over TCP
-		# modpoll -m enc -a {rtu address} -r {start reg} -c {regs to read} -t 4 -1 -p {PORT} {IP Address}
-		# Example: modpoll -m enc -a 3 -r 1 -c 42 -t 4 -1 -0 -p 502 192.168.1.1
-		ps = Popen(['modpoll', '-m', 'enc', '-a', rtu_address, '-r', START_REG, '-c', REGS_TO_READ, '-t', '3', '-1', '-p', port, ip_address], stdout=PIPE, stderr=PIPE)
-	else:
-		# This command is to get the parameter data from the inverters using RTU over an RS485 line
-		# modpoll -m rtu -a {rtu address} -r {start reg} -c {regs to read} -t 4 -0 -1 -4 10 -b {BAUD} -p PARITY {device}
-		# Example: modpoll -m rtu -a 3 -r 1 -c 42 -t 4 -1 -4 10 -0 -p none -b 9600 /dev/ttyS0
-		ps = Popen(['modpoll', '-m', 'rtu', '-a', rtu_address, '-r', START_REG, '-c', REGS_TO_READ, '-t', '3', '-1', '-4', '10', '-p', PARITY, '-b', BAUD_RATE, device], stdout=PIPE, stderr=PIPE)
+    if (enc_tcp):
+        # This command is to get the parameter data from the inverters using RTU encapsulated over TCP
+        # modpoll -m enc -a {rtu address} -r {start reg} -c {regs to read} -t 4 -1 -p {PORT} {IP Address}
+        # Example: modpoll -m enc -a 3 -r 1 -c 42 -t 4 -1 -0 -p 502 192.168.1.1
+        ps = Popen(['modpoll', '-m', 'enc', '-a', rtu_address, '-r', START_REG, '-c', REGS_TO_READ, '-t', '3', '-1', '-p', port, ip_address], stdout=PIPE, stderr=PIPE)
+    else:
+        # This command is to get the parameter data from the inverters using RTU over an RS485 line
+        # modpoll -m rtu -a {rtu address} -r {start reg} -c {regs to read} -t 4 -0 -1 -4 10 -b {BAUD} -p PARITY {device}
+        # Example: modpoll -m rtu -a 3 -r 1 -c 42 -t 4 -1 -4 10 -0 -p none -b 9600 /dev/ttyS0
+        ps = Popen(['modpoll', '-m', 'rtu', '-a', rtu_address, '-r', START_REG, '-c', REGS_TO_READ, '-t', '3', '-1', '-4', '10', '-p', PARITY, '-b', BAUD_RATE, device], stdout=PIPE, stderr=PIPE)
 
-	stdout, stderr  = ps.communicate()
+    stdout, stderr  = ps.communicate()
 		
-	# Modpoll will send the data to stderr, but also send errors on stderr as well. weird.
-	if (debug >= 2):
-		print "STDOUT: ", stdout
-		print "STDERR: ", stderr
+    # Modpoll will send the data to stderr, but also send errors on stderr as well. weird.
+    if (debug >= 2):
+        print "STDOUT: ", stdout
+        print "STDERR: ", stderr
 
-	# for each line, split the register and return values
-	for line in stdout.splitlines():
-		# if the line starts with a '[', then process it
-		if (line.startswith('[')):
-			line = line.replace('[','')	
-			line = line.replace(']','')	
-			register,value = line.split(':')
-			register = register.strip()
-			value = value.strip()
-			register_dict[register] = value
+    # for each line, split the register and return values
+    for line in stdout.splitlines():
+        # if the line starts with a '[', then process it
+        if (line.startswith('[')):
+            line = line.replace('[','')	
+            line = line.replace(']','')	
+            register,value = line.split(':')
+            register = register.strip()
+            value = value.strip()
+            register_dict[register] = value
 
 
-	status = vdc1 = idc1 = vdc2 = idc2 = pac = freq = vac1 = vac2 = vac3 = pdc1 = pdc2 = pdc = ""
-	iac1 = iac2 = iac3 = energy_today = total_energy = temp = fault = temp_ipm = ""
+    status = vdc1 = idc1 = vdc2 = idc2 = pac = freq = vac1 = vac2 = vac3 = pdc1 = pdc2 = pdc = ""
+    iac1 = iac2 = iac3 = energy_today = total_energy = temp = fault = temp_ipm = ""
 
-	count = 0
-	# Get Parameters. If there are 0 parameters, then report an error
-	# Otherwise accept the line. Note that add 1 to the register values, since they all start with '1' not '0'	
-	# DO NOT use the '-0' modpoll command argument. If its set, it will be impossible to collect register 0 value
-	if "1" in register_dict:
-		status = register_dict["1"]
-		if (status in status_dict):
-			status = status_dict[status]
-		count += 1
+    count = 0
+    # Get Parameters. If there are 0 parameters, then report an error
+    # Otherwise accept the line. Note that add 1 to the register values, since they all start with '1' not '0'	
+    # DO NOT use the '-0' modpoll command argument. If its set, it will be impossible to collect register 0 value
+    if "1" in register_dict:
+        status = register_dict["1"]
+        if (status in status_dict):
+            status = status_dict[status]
+        count += 1
 
-	if "41" in register_dict:
-		fault = register_dict["41"]
-		count += 1
-		result, fault_int = convert_to_int(fault)
-		if (result):
-			if (fault_int < 24 and fault_int > 0):
-				fault = "Error: 99+x"
-			elif (fault_int > 23):
-				fault = fault_dict[str(fault_int)]
+    if "41" in register_dict:
+        fault = register_dict["41"]
+        count += 1
+        result, fault_int = convert_to_int(fault)
+        if (result):
+            if (fault_int < 24 and fault_int > 0):
+                fault = "Error: 99+x"
+            elif (fault_int > 23):
+                if str(fault_int) in fault_dict:
+                    fault = fault_dict[str(fault_int)]
+                else:
+                    fault = str(fault_int)
 
 	if (("27" in register_dict) and (("28" in register_dict))):
 		num2 = register_dict["28"]
@@ -260,44 +265,46 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
 				pdc = pdc / 10 
 				count += 1
 
-
-	if (count < 1):
-		errors = True
-		return errors, "", ""
-
-	if (debug > 0):
-		print "For inverter at address: ", rtu_address
-		print "\tStatus: ", status
-		print "\tDC Voltage 1 (V): ", vdc1
-		print "\tDC Current 1 (A): ", idc1
-		print "\tDC Power 1 (W): ", pdc1
-		print "\tDC Voltage 2 (V): ", vdc2
-		print "\tDC Current 2 (A): ", idc2
-		print "\tDC Power 2 (W): ", pdc2
-		print "\tDC Power (W): ", pdc
-		print "\tAC Power (W): ", pac
-		print "\tGrid Frequency (Hz): ", freq
-		print "\tAC Voltage 1 (V): ", vac1
-		print "\tAC Voltage 2 (V): ", vac2
-		print "\tAC Voltage 3 (V): ", vac3
-		print "\tAC Current 1 (A): ", iac1
-		print "\tAC Current 2 (A): ", iac2
-		print "\tAC Current 3 (A): ", iac3
-		print "\tEnergy today (kWh): ", energy_today 
-		print "\tTotal Energy (kWh): ", total_energy 
-		print "\tInverter Temperature (C): ", temp
-		print "\tIPM Temperature (C): ", temp_ipm
-		print "\tFault: ", fault
-
-	datetime_str = get_datetime()
+    if (count < 1):
+        if (debug > 0):
+            print("Errors were encountered")
+        errors = True
+        return (errors, " ", " ")
 
 
-	header = "# Datetime, Status, DC Voltage 1 (V), DC Current 1 (A), DC Power 1 (W), DC Voltage 2 (V), DC Current 2 (A), DC Power 2 (W), DC Power (W), AC Power (W), Grid Frequency (Hz), AC Voltage 1 (V), AC Voltage 2 (V), AC Voltage 3 (V), AC Current 1 (A), AC Current 2 (A), AC Current 3 (A), Energy today (kWh), Total Energy (kWh), Inverter Temperature (C), IPM Temperature (C), Fault\n"
+    if (debug > 0):
+        print "For inverter at address: ", rtu_address
+        print "\tStatus: ", status
+        print "\tDC Voltage 1 (V): ", vdc1
+        print "\tDC Current 1 (A): ", idc1
+        print "\tDC Power 1 (W): ", pdc1
+        print "\tDC Voltage 2 (V): ", vdc2
+        print "\tDC Current 2 (A): ", idc2
+        print "\tDC Power 2 (W): ", pdc2
+        print "\tDC Power (W): ", pdc
+        print "\tAC Power (W): ", pac
+        print "\tGrid Frequency (Hz): ", freq
+        print "\tAC Voltage 1 (V): ", vac1
+        print "\tAC Voltage 2 (V): ", vac2
+        print "\tAC Voltage 3 (V): ", vac3
+        print "\tAC Current 1 (A): ", iac1
+        print "\tAC Current 2 (A): ", iac2
+        print "\tAC Current 3 (A): ", iac3
+        print "\tEnergy today (kWh): ", energy_today 
+        print "\tTotal Energy (kWh): ", total_energy 
+        print "\tInverter Temperature (C): ", temp
+        print "\tIPM Temperature (C): ", temp_ipm
+        print "\tFault: ", fault
 
-	output_str =  datetime_str + "," +  str(status) + "," + str(vdc1) + "," + str(idc1) + "," + str(pdc1) + "," + str(vdc2) + "," + str(idc2) + "," + str(pdc2) + "," + str(pdc) + "," + str(pac) + "," + str(freq) + "," + str(vac1) + "," + str(vac2) + "," + str(vac3) + "," + str(iac1) + "," + str(iac2) + "," + str(iac3) + "," + str(energy_today) + "," + str(total_energy) + "," + str(temp) + "," + str(temp_ipm)  + "," + str(fault) +  "\n"
+    datetime_str = get_datetime()
+
+
+    header = "# Datetime, Status, DC Voltage 1 (V), DC Current 1 (A), DC Power 1 (W), DC Voltage 2 (V), DC Current 2 (A), DC Power 2 (W), DC Power (W), AC Power (W), Grid Frequency (Hz), AC Voltage 1 (V), AC Voltage 2 (V), AC Voltage 3 (V), AC Current 1 (A), AC Current 2 (A), AC Current 3 (A), Energy today (kWh), Total Energy (kWh), Inverter Temperature (C), IPM Temperature (C), Fault\n"
+
+    output_str =  datetime_str + "," +  str(status) + "," + str(vdc1) + "," + str(idc1) + "," + str(pdc1) + "," + str(vdc2) + "," + str(idc2) + "," + str(pdc2) + "," + str(pdc) + "," + str(pac) + "," + str(freq) + "," + str(vac1) + "," + str(vac2) + "," + str(vac3) + "," + str(iac1) + "," + str(iac2) + "," + str(iac3) + "," + str(energy_today) + "," + str(total_energy) + "," + str(temp) + "," + str(temp_ipm)  + "," + str(fault) +  "\n"
 
 	# return the header and output
-	return errors, header, output_str
+    return (errors, header, output_str)
 
 
 # This function converts 2 binary 16 bit numbers to a 32 bit signed integer
@@ -359,7 +366,8 @@ if (not os.path.exists(log_directory)):
 	os.makedirs(log_directory)
 
 # Check that no other scripts are running
-pidfile = os.path.join(log_directory, PIDFILE)
+pidfile = PIDFILE + device + ".pid"
+pidfile = os.path.join(log_directory, pidfile)
 if check_pidfile(pidfile, debug):
 	print "This script is already running"
 	sys.exit(4)
@@ -401,7 +409,7 @@ for rtu_address in range(start_addr, (end_addr + 1)):
 	while (attempts > 0):
 		time.sleep(2) # ... wait between reads, as recommended by the documentation
 		# NB: device will be an IP address
-		errors, header_line, inverter_line = read_inverter(device, tcp_enc, device, str(rtu_address), str(port), debug)
+		(errors, header_line, inverter_line) = read_inverter(device, tcp_enc, device, str(rtu_address), str(port), debug)
 		if (not errors):
 			# Write the log entry, as a date entry in the log directory
 			date_str = (time.strftime("%d-%b-%Y"))
