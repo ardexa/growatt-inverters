@@ -121,7 +121,7 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
 		if (result):
 			result, energy_today = convert_to_float(value)
 			if (result):
-				energy_today = energy_today / 10
+				energy_today = energy_today * 100
 				count += 1
 
 	if (("29" in register_dict) and (("30" in register_dict))):
@@ -131,7 +131,7 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
 		if (result):
 			result, total_energy = convert_to_float(value)
 			if (result):
-				total_energy = total_energy / 10
+				total_energy = total_energy * 100
 				count += 1
 
 	if "33" in register_dict:
@@ -290,8 +290,8 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
         print "\tAC Current 1 (A): ", iac1
         print "\tAC Current 2 (A): ", iac2
         print "\tAC Current 3 (A): ", iac3
-        print "\tEnergy today (kWh): ", energy_today 
-        print "\tTotal Energy (kWh): ", total_energy 
+        print "\tEnergy today (Wh): ", energy_today 
+        print "\tTotal Energy (Wh): ", total_energy 
         print "\tInverter Temperature (C): ", temp
         print "\tIPM Temperature (C): ", temp_ipm
         print "\tFault: ", fault
@@ -299,7 +299,7 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
     datetime_str = get_datetime()
 
 
-    header = "# Datetime, Status, DC Voltage 1 (V), DC Current 1 (A), DC Power 1 (W), DC Voltage 2 (V), DC Current 2 (A), DC Power 2 (W), DC Power (W), AC Power (W), Grid Frequency (Hz), AC Voltage 1 (V), AC Voltage 2 (V), AC Voltage 3 (V), AC Current 1 (A), AC Current 2 (A), AC Current 3 (A), Energy today (kWh), Total Energy (kWh), Inverter Temperature (C), IPM Temperature (C), Fault\n"
+    header = "# Datetime, Status, DC Voltage 1 (V), DC Current 1 (A), DC Power 1 (W), DC Voltage 2 (V), DC Current 2 (A), DC Power 2 (W), DC Power (W), AC Power (W), Grid Frequency (Hz), AC Voltage 1 (V), AC Voltage 2 (V), AC Voltage 3 (V), AC Current 1 (A), AC Current 2 (A), AC Current 3 (A), Energy today (Wh), Total Energy (Wh), Inverter Temperature (C), IPM Temperature (C), Fault\n"
 
     output_str =  datetime_str + "," +  str(status) + "," + str(vdc1) + "," + str(idc1) + "," + str(pdc1) + "," + str(vdc2) + "," + str(idc2) + "," + str(pdc2) + "," + str(pdc) + "," + str(pac) + "," + str(freq) + "," + str(vac1) + "," + str(vac2) + "," + str(vac3) + "," + str(iac1) + "," + str(iac2) + "," + str(iac3) + "," + str(energy_today) + "," + str(total_energy) + "," + str(temp) + "," + str(temp_ipm)  + "," + str(fault) +  "\n"
 
