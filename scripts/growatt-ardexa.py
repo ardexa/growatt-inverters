@@ -404,7 +404,7 @@ def main():
             (errors, header_line, inverter_line) = read_inverter(device, tcp_enc, device, str(rtu_address), str(port), debug)
             if not errors:
                 # Write the log entry, as a date entry in the log directory
-                date_str = (time.strftime("%d-%b-%Y"))
+                date_str = (time.strftime("%Y-%m-%d"))
                 log_filename = date_str + ".csv"
                 name = "inverter_" + str(device) + "_" + str(rtu_address)
                 log_directory_inv = os.path.join(log_directory, name)
