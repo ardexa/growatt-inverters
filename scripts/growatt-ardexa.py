@@ -318,23 +318,7 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
 # This function converts 2 binary 16 bit numbers to a 32 bit signed integer
 def convert_32(num1_str, num2_str):
     try:
-        # Handle any numbers are -vxe
-        num1_int = int(num1_str)
-        max_int16 = pow(2, 16)
-        if num1_int < 0:
-            num1_int = max_int16 + num1_int
-
-        num2_int = int(num2_str)
-        max_int16 = pow(2, 16)
-        if num2_int < 0:
-            num2_int = max_int16 + num2_int
-
-        num1_bin = bin(num1_int)[2:]
-        num2_bin = bin(num2_int)[2:]
-        # if any numbers are
-
-        res = num1_bin + num2_bin
-        number = int(res, 2)
+        number = (int(num1_str) << 16) | int(num2_str)
         full_int = pow(2, 32)
         if number > full_int / 2:
             number = number - full_int
