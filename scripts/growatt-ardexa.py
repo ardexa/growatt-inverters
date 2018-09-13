@@ -148,49 +148,49 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
         temp_raw = register_dict["33"]
         result, temp = convert_to_float(temp_raw)
         if result:
-            temp = temp / 10 # Divide by 10
+            temp = temp / 10.0 # Divide by 10
             count += 1
 
     if "42" in register_dict:
         temp_ipm_raw = register_dict["42"]
         result, temp_ipm = convert_to_float(temp_ipm_raw)
         if result:
-            temp_ipm = temp_ipm / 10 # Divide by 10
+            temp_ipm = temp_ipm / 10.0 # Divide by 10
             count += 1
 
     if "14" in register_dict:
         freq_raw = register_dict["14"]
         result, freq = convert_to_float(freq_raw)
         if result:
-            freq = freq / 100 # Divide by 100
+            freq = freq / 100.0 # Divide by 100
             count += 1
 
     if "4" in register_dict:
         vdc1_raw = register_dict["4"]
         result, vdc1 = convert_to_float(vdc1_raw)
         if result:
-            vdc1 = vdc1 / 10 # Divide by 10
+            vdc1 = vdc1 / 10.0 # Divide by 10
             count += 1
 
     if "5" in register_dict:
         idc1_raw = register_dict["5"]
         result, idc1 = convert_to_float(idc1_raw)
         if result:
-            idc1 = idc1 / 10 # Divide by 10
+            idc1 = idc1 / 10.0 # Divide by 10
             count += 1
 
     if "8" in register_dict:
         vdc2_raw = register_dict["8"]
         result, vdc2 = convert_to_float(vdc2_raw)
         if result:
-            vdc2 = vdc2 / 10 # Divide by 10
+            vdc2 = vdc2 / 10.0 # Divide by 10
             count += 1
 
     if "9" in register_dict:
         idc2_raw = register_dict["9"]
         result, idc2 = convert_to_float(idc2_raw)
         if result:
-            idc2 = idc2 / 10 # Divide by 10
+            idc2 = idc2 / 10.0 # Divide by 10
             count += 1
 
     if "12" in register_dict and "13" in register_dict:
@@ -200,49 +200,49 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
         if result:
             result, pac = convert_to_float(value)
             if result:
-                pac = pac / 10 # Divide by 10
+                pac = pac / 10.0 # Divide by 10
                 count += 1
 
     if "15" in register_dict:
         vac1_raw = register_dict["15"]
         result, vac1 = convert_to_float(vac1_raw)
         if result:
-            vac1 = vac1 / 10 # Divide by 10
+            vac1 = vac1 / 10.0 # Divide by 10
             count += 1
 
     if "19" in register_dict:
         vac2_raw = register_dict["19"]
         result, vac2 = convert_to_float(vac2_raw)
         if result:
-            vac2 = vac2 / 10 # Divide by 10
+            vac2 = vac2 / 10.0 # Divide by 10
             count += 1
 
     if "23" in register_dict:
         vac3_raw = register_dict["23"]
         result, vac3 = convert_to_float(vac3_raw)
         if result:
-            vac3 = vac3 / 10 # Divide by 10
+            vac3 = vac3 / 10.0 # Divide by 10
             count += 1
 
     if "16" in register_dict:
         iac1_raw = register_dict["16"]
         result, iac1 = convert_to_float(iac1_raw)
         if result:
-            iac1 = iac1 / 10 # Divide by 10
+            iac1 = iac1 / 10.0 # Divide by 10
             count += 1
 
     if "20" in register_dict:
         iac2_raw = register_dict["20"]
         result, iac2 = convert_to_float(iac2_raw)
         if result:
-            iac2 = iac2 / 10 # Divide by 10
+            iac2 = iac2 / 10.0 # Divide by 10
             count += 1
 
     if "24" in register_dict:
         iac3_raw = register_dict["24"]
         result, iac3 = convert_to_float(iac3_raw)
         if result:
-            iac3 = iac3 / 10 # Divide by 10
+            iac3 = iac3 / 10.0 # Divide by 10
             count += 1
 
     if "6" in register_dict and "7" in register_dict:
@@ -252,7 +252,7 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
         if result:
             result, pdc1 = convert_to_float(value)
             if result:
-                pdc1 = pdc1 / 10
+                pdc1 = pdc1 / 10.0
                 count += 1
 
     if "10" in register_dict and "11" in register_dict:
@@ -262,7 +262,7 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
         if result:
             result, pdc2 = convert_to_float(value)
             if result:
-                pdc2 = pdc2 / 10
+                pdc2 = pdc2 / 10.0
                 count += 1
 
     if "2" in register_dict and "3" in register_dict:
@@ -272,7 +272,7 @@ def read_inverter(device, enc_tcp, ip_address, rtu_address, port, debug):
         if result:
             result, pdc = convert_to_float(value)
             if result:
-                pdc = pdc / 10
+                pdc = pdc / 10.0
                 count += 1
 
     if count < 1:
